@@ -1,13 +1,22 @@
 import React, { useState } from "react";
 import Login from "./Login";
-import WifiSimulator from "./WifiSimulator"; // Rename your original App.js code here if needed
+import WifiSimulator from "./WifiSimulator";
+import { Analytics } from "@vercel/analytics/react"; // ✅ Import this
 
 export default function App() {
   const [started, setStarted] = useState(false);
 
-  if (!started) {
-    return <Login onStart={() => setStarted(true)} />;
-  }
+  return (
+    <>
+      {/* Render Login or Main App */}
+      {!started ? (
+        <Login onStart={() => setStarted(true)} />
+      ) : (
+        <WifiSimulator />
+      )}
 
-  return <WifiSimulator />; // Shows your main Wi-Fi system after clicking Start
+      {/* ✅ Add Analytics at the very bottom */}
+      <Analytics />
+    </>
+  );
 }
