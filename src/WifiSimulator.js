@@ -12,7 +12,7 @@ import {
 import { Wifi, Smartphone } from "lucide-react";
 
 //
-// ✅ Helper: Format 1.556e-8 → 1.556 × 10⁻⁸
+// Helper: Format 1.556e-8 → 1.556 × 10⁻⁸
 //
 function formatScientific(value, precision = 3) {
   if (value === 0 || !isFinite(value)) return "0";
@@ -55,6 +55,10 @@ export default function App() {
     const dbm = 10 * Math.log10(Icorrected); // 4️⃣ Convert to dBm
     const strength = 100 / (1 + Math.exp(-(dbm + 65) / 5)); // 5️⃣ Signal %
 
+    // Compute approximate Mbps (simple model: max 100 Mbps)
+    const maxMbps = 100;
+    const mbps = Math.round((strength / 100) * maxMbps);
+
     return {
       strength: Number(strength.toFixed(1)),
       dbm: Number(dbm.toFixed(2)),
@@ -62,10 +66,11 @@ export default function App() {
       pathLoss,
       Icorrected,
       dKm,
+      mbps,
     };
   }
 
-  const { strength: signalPercent, dbm, I, pathLoss, Icorrected, dKm } =
+  const { strength: signalPercent, dbm, I, pathLoss, Icorrected, dKm, mbps } =
     calcSignalPercent(distance);
 
   // Chart data
@@ -93,7 +98,7 @@ export default function App() {
             📶 Wi-Fi Signal Strength Simulator
           </h1>
           <div className="text-sm text-slate-600">
-            Free-Space 2.4 GHz • Step-by-Step Solution
+            This uses 2.4GHz frequency. Transmit Power: 100mW.
           </div>
         </header>
 
@@ -197,8 +202,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* Step-by-step solution (outside the box) */}
-            <div className="w-full p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+            {/* Step-by-step solution */}
+            <div className="w-full bg-white border border-slate-100 rounded-xl p-4 shadow-md hover:shadow-xl transition-shadow flex flex-col gap-6">
               <h3 className="font-semibold mb-2">📘 Step-by-Step Calculation:</h3>
               <p className="mb-2">
                 <strong>1️⃣ Inverse-Square Law:</strong><br />
@@ -224,8 +229,9 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Column: Chart */}
-          <div className="w-full md:w-1/2">
+          {/* Right Column: Chart + Summary aligned to top of left bottom box */}
+          <div className="w-full md:w-1/2 flex flex-col gap-7">
+            {/* Chart Box */}
             <div className="w-full aspect-[4/3] bg-white border border-slate-100 rounded-xl p-3 shadow-md hover:shadow-xl transition-shadow">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium text-slate-700">
@@ -278,6 +284,32 @@ export default function App() {
                   />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+
+            {/* Summary Box aligned to top */}
+            <div className="w-full bg-white border border-slate-100 rounded-xl p-4 shadow-md hover:shadow-xl transition-shadow">
+              <h3 className="font-semibold text-slate-800 mb-4">📊 Summary</h3>
+              <div className="flex flex-wrap">
+                <div className="w-1/2 p-2 border-b border-r border-slate-200 flex flex-col items-center justify-center">
+                  <div className="text-xs font-medium text-slate-500 mb-1">Signal Strength</div>
+                  <div className="text-lg font-bold text-slate-800">{signalPercent}%</div>
+                </div>
+
+                <div className="w-1/2 p-2 border-b border-slate-200 flex flex-col items-center justify-center">
+                  <div className="text-xs font-medium text-slate-500 mb-1">Power</div>
+                  <div className="text-lg font-bold text-slate-800">{dbm} dBm</div>
+                </div>
+
+                <div className="w-1/2 p-2 border-r border-slate-200 flex flex-col items-center justify-center">
+                  <div className="text-xs font-medium text-slate-500 mb-1">Distance</div>
+                  <div className="text-lg font-bold text-slate-800">{distance} m</div>
+                </div>
+
+                <div className="w-1/2 p-2 flex flex-col items-center justify-center">
+                  <div className="text-xs font-medium text-slate-500 mb-1">Mbps</div>
+                  <div className="text-lg font-bold text-slate-800">{mbps} Mbps</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
