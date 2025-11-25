@@ -40,8 +40,8 @@ function formatScientific(value, precision = 3) {
 
 export default function App() {
   const [distance, setDistance] = useState(6);
+  const [txPower, setTxPower] = useState(100); // ✅ User-defined transmit power
   const maxDistance = 20; // Maximum distance (meters)
-  const Ptx = 100; // Transmit power in mW
   const fMHz = 2400; // Wi-Fi frequency
 
   function calcSignalPercent(dMeters) {
@@ -49,7 +49,7 @@ export default function App() {
     if (dMeters <= 0)
       return { strength: 0, dbm: -Infinity, I: 0, pathLoss: 0, Icorrected: 0, dKm };
 
-    const I = Ptx / (4 * Math.PI * dMeters * dMeters); // 1️⃣ Inverse-square law
+    const I = txPower / (4 * Math.PI * dMeters * dMeters); // 1️⃣ Inverse-square law using user power
     const pathLoss = 20 * Math.log10(dKm) + 20 * Math.log10(fMHz) + 32.44; // 2️⃣ FSPL
     const Icorrected = I * Math.pow(10, -pathLoss / 10); // 3️⃣ Corrected power
     const dbm = 10 * Math.log10(Icorrected); // 4️⃣ Convert to dBm
@@ -80,7 +80,7 @@ export default function App() {
       const { strength, dbm } = calcSignalPercent(m);
       return { distance: m, strength, dbm };
     });
-  }, [maxDistance]);
+  }, [maxDistance, txPower]); // Update chart when txPower changes
 
   const getColorFor = (pct) => {
     if (pct > 70) return "#16a34a";
@@ -98,7 +98,7 @@ export default function App() {
             📶 Wi-Fi Signal Strength Simulator
           </h1>
           <div className="text-sm text-slate-600">
-            This uses 2.4GHz frequency. Transmit Power: 100mW.
+            This uses 2.4GHz frequency. Transmit Power: Adjustable.
           </div>
         </header>
 
@@ -192,6 +192,22 @@ export default function App() {
                     <div className="text-xs text-slate-500">{dbm} dBm</div>
                   </div>
                 </div>
+
+                {/* Transmit Power Input */}
+                <div className="mt-2 flex items-center gap-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    Transmit Power (mW):
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    step="1"
+                    value={txPower}
+                    onChange={(e) => setTxPower(Number(e.target.value))}
+                    className="w-24 border rounded px-2 py-1 text-sm"
+                  />
+                </div>
               </div>
 
               {/* Legend */}
@@ -207,7 +223,7 @@ export default function App() {
               <h3 className="font-semibold mb-2">📘 Step-by-Step Calculation:</h3>
               <p className="mb-2">
                 <strong>1️⃣ Inverse-Square Law:</strong><br />
-                I = P / (4πR²) = 100 / (4π({distance})²) ={" "}
+                I = P / (4πR²) = {txPower} / (4π({distance})²) ={" "}
                 <strong>{formatScientific(I)} mW</strong>
               </p>
               <p className="mb-2">
@@ -229,7 +245,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Column: Chart + Summary aligned to top of left bottom box */}
+          {/* Right Column: Chart + Summary */}
           <div className="w-full md:w-1/2 flex flex-col gap-7">
             {/* Chart Box */}
             <div className="w-full aspect-[4/3] bg-white border border-slate-100 rounded-xl p-3 shadow-md hover:shadow-xl transition-shadow">
@@ -286,7 +302,7 @@ export default function App() {
               </ResponsiveContainer>
             </div>
 
-            {/* Summary Box aligned to top */}
+            {/* Summary Box */}
             <div className="w-full bg-white border border-slate-100 rounded-xl p-4 shadow-md hover:shadow-xl transition-shadow">
               <h3 className="font-semibold text-slate-800 mb-4">📊 Summary</h3>
               <div className="flex flex-wrap">
